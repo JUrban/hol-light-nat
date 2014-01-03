@@ -16,7 +16,7 @@ Usage
 Download the script. (Alternatively, you can also clone this repository.)
 
     mkdir hol-light-nat
-    cd hol-light-workbench
+    cd hol-light-nat
     wget https://raw.github.com/JUrban/hol-light-nat/master/setup
     chmod 755 setup 
     
