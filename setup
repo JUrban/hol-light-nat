@@ -2,9 +2,18 @@
 
 # Setup script for HOL Light, including compatible versions of ocaml/camlp5
 
-export WORKBENCH="$(cd "$(dirname "$0")"; pwd -P)"
+# Based on Alex Kraus's HOL Light workbench and the holnat changes
+# described at people.math.carleton.ca/~kcheung/holnat.html
 
-if [ -f $WORKBENCH/ocaml/done ]; then
+export WORKBENCH="$(cd "$(dirname "$0")"; pwd -P)"
+export OCAMLMAINVERSION=3.12
+export OCAMLMINORVERSION=1
+export CAMLP5VERSION=5.15
+
+export OCAMLVERSION="$OCAMLMAINVERSION.$OCAMLMINORVERSION"
+
+
+if [ -f $WORKBENCH/ocaml.done ]; then
   echo OCaml already present.
 else
 
@@ -13,35 +22,83 @@ else
 
   echo Getting ocaml sources
 
-  wget -N http://caml.inria.fr/pub/distrib/ocaml-3.12/ocaml-3.12.1.tar.gz
-  tar -xzf ocaml-3.12.1.tar.gz
-  cd ocaml-3.12.1
+  wget -N http://caml.inria.fr/pub/distrib/ocaml-$OCAMLMAINVERSION/ocaml-$OCAMLVERSION.tar.gz
+  tar -xzf ocaml-$OCAMLVERSION.tar.gz
+  cd ocaml-$OCAMLVERSION
   ./configure -prefix $WORKBENCH/ocaml
 
   echo Building ocaml
-  make world
-
+  make world.opt
   echo Installing ocaml
   make install
+  echo Building ocamlnat
+  make ocamlnat
+  cp ocamlnat $WORKBENCH/bin
 
-  export PATH=$WORKBENCH/ocaml/bin:$PATH
-  export OCAMLLIB=$WORKBENCH/ocaml/lib/ocaml
+  cd toplevel
+
+  cp opttopdirs.cmx opttopdirs.cmi opttopdirs.o \
+      opttoploop.cmx opttoploop.cmi opttoploop.o \
+      $WORKBENCH/lib/ocaml
+
+  export PATH=$WORKBENCH/bin:$PATH
+  export OCAMLLIB=$WORKBENCH/lib/ocaml
   cd $WORKBENCH/build.tmp
 
   echo Getting camlp5 sources
-  wget -N http://pauillac.inria.fr/~ddr/camlp5/distrib/src/camlp5-5.15.tgz
-  tar -xzf camlp5-5.15.tgz
-  cd camlp5-5.15
-  ./configure -strict -prefix $WORKBENCH/ocaml
+  wget -N http://pauillac.inria.fr/~ddr/camlp5/distrib/src/camlp5-$CAMLP5VERSION.tgz
+  tar -xzf camlp5-$CAMLP5VERSION.tgz
+  cd camlp5-$CAMLP5VERSION
+  ./configure -strict -prefix $WORKBENCH
 
   echo Building camlp5
-  make world.opt > log.world 2>&1
+  make world > log.world 2>&1
+  make opt > log.opt 2>&1
   make install
 
-  touch $WORKBENCH/ocaml/done
+# these are the camlp5-related changes from people.math.carleton.ca/~kcheung/holnat.html
+
+  cd top
+
+  sed -e 's/Toploop/Opttoploop/g' camlp5_top.ml \
+      | sed -e 's/Topdirs/Opttopdirs/g' > camlp5_opttop.ml
+
+  ocamlrun ../boot/camlp5r -nolib -I ../boot pa_macro.cmo q_MLast.cmo \
+      -mode T -o camlp5_opttop.ppo camlp5_opttop.ml
+
+  ocamlopt -warn-error A -I ../main -I ../boot \
+      -I ../ocaml_stuff/$OCAMLVERSION/utils -I ../ocaml_stuff/$OCAMLVERSION/parsing \
+      -I ../ocaml_stuff/$OCAMLVERSION/typing -I ../ocaml_stuff/$OCAMLVERSION/toplevel \
+      -I $WORKBENCH/ocaml-$OCAMLVERSION/toplevel -c -impl camlp5_opttop.ppo
+
+  rm -f camlp5_opttop.ppo
+
+  cd ..
+
+  ocamlopt -linkall -a \
+      ocaml_stuff/$OCAMLVERSION/utils/pconfig.cmx lib/ploc.cmx lib/plexing.cmx \
+      lib/plexer.cmx lib/fstream.cmx lib/gramext.cmx lib/grammar.cmx lib/diff.cmx \
+      lib/extfold.cmx lib/extfun.cmx lib/pretty.cmx lib/pprintf.cmx \
+      lib/eprinter.cmx main/quotation.cmx main/ast2pt.cmx main/reloc.cmx \
+      main/exparser.cmx main/pcaml.cmx main/prtools.cmx lib/stdpp.cmx \
+      lib/token.cmx etc/pa_o.cmx etc/pa_op.cmx top/camlp5_opttop.cmx -o camlp5o.cmxa
+
+  cp camlp5o.cmxa camlp5o.a $WORKBENCH/lib/ocaml/camlp5
+  
+  cd $WORKBENCH/hol_light
+
+  make
+  ocamlopt -c -pp "camlp5r pa_lexer.cmo pa_extend.cmo q_MLast.cmo" \
+      -I +camlp5  pa_j.ml
+
+  sed -e 's/nums\.cma/nums.cmxa/g' system.ml > sysnat.ml
+
+# end of the camlp5 changes
+
+  touch $WORKBENCH/ocaml.done
 fi
 
-if [ -f $WORKBENCH/hol-light/done ]; then
+if [ -f $WORKBENCH/hol-light.done ]; then
   echo HOL Light already present.
 else
   echo "Getting HOL Light"
@@ -51,15 +108,15 @@ else
   cd hol-light
   make
 
-  touch $WORKBENCH/hol-light/done
+  touch $WORKBENCH/hol-light.done
 fi
 
 
 cd $WORKBENCH
 cat > setpaths <<EOF
 
-export PATH=$WORKBENCH/ocaml/bin:\$PATH
-export OCAMLLIB=$WORKBENCH/ocaml/lib/ocaml
+export PATH=$WORKBENCH/bin:\$PATH
+export OCAMLLIB=$WORKBENCH/lib/ocaml
 EOF
 
 echo "Done. Run \". setpaths\", to set adjust PATH"
