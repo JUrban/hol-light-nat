@@ -25,7 +25,7 @@ else
   wget -N http://caml.inria.fr/pub/distrib/ocaml-$OCAMLMAINVERSION/ocaml-$OCAMLVERSION.tar.gz
   tar -xzf ocaml-$OCAMLVERSION.tar.gz
   cd ocaml-$OCAMLVERSION
-  ./configure -prefix $WORKBENCH/ocaml
+  ./configure -prefix $WORKBENCH
 
   echo Building ocaml
   make world.opt
@@ -49,7 +49,7 @@ else
   wget -N http://pauillac.inria.fr/~ddr/camlp5/distrib/src/camlp5-$CAMLP5VERSION.tgz
   tar -xzf camlp5-$CAMLP5VERSION.tgz
   cd camlp5-$CAMLP5VERSION
-  ./configure -strict -prefix $WORKBENCH
+  ./configure -prefix $WORKBENCH
 
   echo Building camlp5
   make world > log.world 2>&1
