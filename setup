@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Setup script for HOL Light, including compatible versions of ocaml/camlp5
+
+export WORKBENCH="$(cd "$(dirname "$0")"; pwd -P)"
+
+if [ -f $WORKBENCH/ocaml/done ]; then
+  echo OCaml already present.
+else
+
+  mkdir build.tmp
+  cd build.tmp
+
+  echo Getting ocaml sources
+
+  wget -N http://caml.inria.fr/pub/distrib/ocaml-3.12/ocaml-3.12.1.tar.gz
+  tar -xzf ocaml-3.12.1.tar.gz
+  cd ocaml-3.12.1
+  ./configure -prefix $WORKBENCH/ocaml
+
+  echo Building ocaml
+  make world
+
+  echo Installing ocaml
+  make install
+
+  export PATH=$WORKBENCH/ocaml/bin:$PATH
+  export OCAMLLIB=$WORKBENCH/ocaml/lib/ocaml
+  cd $WORKBENCH/build.tmp
+
+  echo Getting camlp5 sources
+  wget -N http://pauillac.inria.fr/~ddr/camlp5/distrib/src/camlp5-5.15.tgz
+  tar -xzf camlp5-5.15.tgz
+  cd camlp5-5.15
+  ./configure -strict -prefix $WORKBENCH/ocaml
+
+  echo Building camlp5
+  make world.opt > log.world 2>&1
+  make install
+
+  touch $WORKBENCH/ocaml/done
+fi
+
+if [ -f $WORKBENCH/hol-light/done ]; then
+  echo HOL Light already present.
+else
+  echo "Getting HOL Light"
+
+  cd $WORKBENCH
+  svn checkout http://hol-light.googlecode.com/svn/trunk/ hol-light
+  cd hol-light
+  make
+
+  touch $WORKBENCH/hol-light/done
+fi
+
+
+cd $WORKBENCH
+cat > setpaths <<EOF
+
+export PATH=$WORKBENCH/ocaml/bin:\$PATH
+export OCAMLLIB=$WORKBENCH/ocaml/lib/ocaml
+EOF
+
+echo "Done. Run \". setpaths\", to set adjust PATH"
