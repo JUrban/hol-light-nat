@@ -9,8 +9,12 @@ code for use with ocamlnat.
 Usage
 =====
 
-Download the script and the verifier.
+This assumes that you already ran the "setup" script from this
+repository and are in the installation directory.
 
+Set the paths, download the script and the verifier.
+
+    . setpaths
     cd $WORKBENCH/hol-light
     wget http://flyspeck.googlecode.com/files/FormalVerifier.zip
     unzip FormalVerifier.zip
@@ -21,6 +25,8 @@ Download the script and the verifier.
 Run the script. 
 
     ./formineq.sh
+
+Run the patched inequality verifier:
 
     cd hol-light
     ocamlnat -I $WORKBENCH/lib/ocaml/camlp5
