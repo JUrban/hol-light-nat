@@ -118,6 +118,7 @@ fi
 cd $WORKBENCH
 cat > setpaths <<EOF
 
+export WORKBENCH=$WORKBENCH
 export PATH=$WORKBENCH/bin:\$PATH
 export OCAMLLIB=$WORKBENCH/lib/ocaml
 EOF
