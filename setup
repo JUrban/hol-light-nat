@@ -85,13 +85,6 @@ else
 
   cp camlp5o.cmxa camlp5o.a $WORKBENCH/lib/ocaml/camlp5
   
-  cd $WORKBENCH/hol_light
-
-  make
-  ocamlopt -c -pp "camlp5r pa_lexer.cmo pa_extend.cmo q_MLast.cmo" \
-      -I +camlp5  pa_j.ml
-
-  sed -e 's/nums\.cma/nums.cmxa/g' system.ml > sysnat.ml
 
 # end of the camlp5 changes
 
@@ -101,12 +94,22 @@ fi
 if [ -f $WORKBENCH/hol-light.done ]; then
   echo HOL Light already present.
 else
+  export PATH=$WORKBENCH/bin:$PATH
+  export OCAMLLIB=$WORKBENCH/lib/ocaml
+
   echo "Getting HOL Light"
 
   cd $WORKBENCH
   svn checkout http://hol-light.googlecode.com/svn/trunk/ hol-light
   cd hol-light
   make
+
+  ocamlopt -c -pp "camlp5r pa_lexer.cmo pa_extend.cmo q_MLast.cmo" \
+      -I +camlp5  pa_j.ml
+
+  sed -e 's/nums\.cma/nums.cmxa/g' system.ml > sysnat.ml
+
+
 
   touch $WORKBENCH/hol-light.done
 fi
