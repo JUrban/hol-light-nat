@@ -109,7 +109,7 @@ else
 
   sed -e 's/nums\.cma/nums.cmxa/g' system.ml > sysnat.ml
 
-
+  sed -e 's/\.cma/.cmxa/g;s/\.cmo/.cmx/g;s/\bsystem\.ml\b/sysnat.ml/g;s/Toploop/Opttoploop/g;s/Topdirs/Opttopdirs/g' hol.ml > holnat.ml
 
   touch $WORKBENCH/hol-light.done
 fi
@@ -123,3 +123,5 @@ export OCAMLLIB=$WORKBENCH/lib/ocaml
 EOF
 
 echo "Done. Run \". setpaths\", to set adjust PATH"
+echo "Run \"ocamlnat -I $WORKBENCH/lib/ocaml/camlp5\""
+echo "Followed by #use \"holnat.ml\";;"
