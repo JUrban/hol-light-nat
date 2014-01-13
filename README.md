@@ -7,8 +7,9 @@ This is a script that will run HOL Light using the OCAML native
 compiler ocamlnat. The script will download, compile and install [HOL
 Light](http://www.cl.cam.ac.uk/~jrh13/hol-light/), including
 compatible versions of OCaml and Camlp5. The script is based on Alex
-Krauss hol-light-workbench and Kevin Cheung's holnat:
-people.math.carleton.ca/~kcheung/holnat.html .
+Krauss hol-light-workbench: https://bitbucket.org/akrauss/hol-light-workbench/ 
+and Kevin Cheung's holnat: http://people.math.carleton.ca/~kcheung/holnat.html . 
+It was hacked together by Dan Synek and Josef Urban ( FirstnameLastname@gmail.com ).
 
 Usage
 =====
